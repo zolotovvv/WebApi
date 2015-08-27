@@ -406,7 +406,7 @@ namespace System.Web.OData.Query.Expressions
                     propertyValue = nullablePropertyValue;
                 }
 
-                includedProperties.Add(new NamedPropertyExpression(propertyName, propertyValue));
+               // includedProperties.Add(new NamedPropertyExpression(propertyName, propertyValue));
             }
 
             // create a property container that holds all these property names and values.
@@ -584,7 +584,11 @@ namespace System.Web.OData.Query.Expressions
                     PropertySegment structuralPropertySegment = pathSelectItem.SelectedPath.LastSegment as PropertySegment;
                     if (structuralPropertySegment != null)
                     {
-                        propertiesToInclude.Add(structuralPropertySegment.Property);
+                        if (structuralPropertySegment.Property.Name != "EdmDateTo" &&
+                            structuralPropertySegment.Property.Name != "EdmDateFrom")
+                        {
+                            propertiesToInclude.Add(structuralPropertySegment.Property);
+                        }
                     }
                 }
 
@@ -654,19 +658,19 @@ namespace System.Web.OData.Query.Expressions
         The below four classes workaround that entity framework limitation by defining a seperate type for each
         property selection combination possible. */
 
-        private class SelectAllAndExpand<TEntity> : SelectExpandWrapper<TEntity>
+        internal class SelectAllAndExpand<TEntity> : SelectExpandWrapper<TEntity>
         {
         }
 
-        private class SelectAll<TEntity> : SelectExpandWrapper<TEntity>
+        internal class SelectAll<TEntity> : SelectExpandWrapper<TEntity>
         {
         }
 
-        private class SelectSomeAndInheritance<TEntity> : SelectExpandWrapper<TEntity>
+        internal class SelectSomeAndInheritance<TEntity> : SelectExpandWrapper<TEntity>
         {
         }
 
-        private class SelectSome<TEntity> : SelectAllAndExpand<TEntity>
+        internal class SelectSome<TEntity> : SelectAllAndExpand<TEntity>
         {
         }
     }

@@ -58,6 +58,7 @@ namespace System.Web.OData.Routing
         /// The selected action.
         /// </returns>
         [SuppressMessage("Microsoft.Reliability", "CA2000:DisposeObjectsBeforeLosingScope", Justification = "Response disposed later")]
+        [DebuggerNonUserCode]
         public HttpActionDescriptor SelectAction(HttpControllerContext controllerContext)
         {
             if (controllerContext == null)
