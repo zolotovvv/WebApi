@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation.  All rights reserved.
 // Licensed under the MIT License.  See License.txt in the project root for license information.
 
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data.Linq;
 using System.Diagnostics.Contracts;
@@ -15,7 +16,10 @@ using System.Web.OData.Properties;
 using System.Web.OData.Query.Expressions;
 using System.Xml.Linq;
 using Microsoft.OData.Edm;
+using Microsoft.OData.Edm.Annotations;
+using Microsoft.OData.Edm.Expressions;
 using Microsoft.OData.Edm.Library;
+using Microsoft.OData.Edm.Vocabularies.V1;
 using Microsoft.Spatial;
 
 namespace System.Web.OData.Formatter
@@ -410,10 +414,54 @@ namespace System.Web.OData.Formatter
             return String.Format(CultureInfo.InvariantCulture, "{0}.{1}", clrType.Namespace, clrType.EdmName());
         }
 
-        public static IEnumerable<IEdmStructuralProperty> GetConcurrencyProperties(this IEdmEntityType type)
+        private static ConcurrentDictionary<IEdmEntitySet, IEnumerable<IEdmStructuralProperty>> _concurrencyProperties;
+
+        public static IEnumerable<IEdmStructuralProperty> GetConcurrencyProperties(this IEdmModel model, IEdmEntitySet entitySet)
         {
-            return type.StructuralProperties()
-                .Where(s => s.ConcurrencyMode == EdmConcurrencyMode.Fixed && s.Type.IsPrimitive());
+            Contract.Assert(model != null);
+            Contract.Assert(entitySet != null);
+
+            IEnumerable<IEdmStructuralProperty> cachedProperties;
+            if (_concurrencyProperties != null && _concurrencyProperties.TryGetValue(entitySet, out cachedProperties))
+            {
+                return cachedProperties;
+            }
+
+            IList<IEdmStructuralProperty> results = new List<IEdmStructuralProperty>();
+            IEdmEntityType entityType = entitySet.EntityType();
+            var annotations = model.FindVocabularyAnnotations<IEdmValueAnnotation>(entitySet, CoreVocabularyModel.ConcurrencyTerm);
+            IEdmValueAnnotation annotation = annotations.FirstOrDefault();
+            if (annotation != null)
+            {
+                IEdmCollectionExpression properties = annotation.Value as IEdmCollectionExpression;
+                if (properties != null)
+                {
+                    foreach (var property in properties.Elements)
+                    {
+                        IEdmPathExpression pathExpression = property as IEdmPathExpression;
+                        if (pathExpression != null)
+                        {
+                            // So far, we only consider the single path, because only the direct properties from declaring type are used.
+                            // However we have an issue tracking on: https://github.com/OData/WebApi/issues/472
+                            string propertyName = pathExpression.Path.Single();
+                            IEdmProperty edmProperty = entityType.FindProperty(propertyName);
+                            IEdmStructuralProperty structuralProperty = edmProperty as IEdmStructuralProperty;
+                            if (structuralProperty != null)
+                            {
+                                results.Add(structuralProperty);
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (_concurrencyProperties == null)
+            {
+                _concurrencyProperties = new ConcurrentDictionary<IEdmEntitySet, IEnumerable<IEdmStructuralProperty>>();
+            }
+
+            _concurrencyProperties[entitySet] = results;
+            return results;
         }
 
         private static IEdmPrimitiveType GetPrimitiveType(EdmPrimitiveTypeKind primitiveKind)

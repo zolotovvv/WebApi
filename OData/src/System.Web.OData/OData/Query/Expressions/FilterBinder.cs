@@ -247,9 +247,9 @@ namespace System.Web.OData.Query.Expressions
             if (_querySettings.HandleNullPropagation == HandleNullPropagationOption.True)
             {
                 var dynamicDictIsNotNull = Expression.NotEqual(propertyAccessExpression, Expression.Constant(null));
-                var dynamicDictExitsAndIsNotNull = Expression.AndAlso(dynamicDictIsNotNull, containsKeyExpression);
+                var dynamicDictIsNotNullAndContainsKey = Expression.AndAlso(dynamicDictIsNotNull, containsKeyExpression);
                 return Expression.Condition(
-                    dynamicDictExitsAndIsNotNull,
+                    dynamicDictIsNotNullAndContainsKey,
                     readDictionaryIndexerExpression,
                     nullExpression);
             }
@@ -1779,7 +1779,7 @@ namespace System.Web.OData.Query.Expressions
             if (arguments.Any())
             {
                 return arguments
-                    .Aggregate((left, right) => Expression.Or(left, right));
+                    .Aggregate((left, right) => Expression.OrElse(left, right));
             }
             else
             {

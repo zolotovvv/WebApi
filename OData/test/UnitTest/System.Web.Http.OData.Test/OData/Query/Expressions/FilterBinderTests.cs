@@ -408,6 +408,17 @@ namespace System.Web.Http.OData.Query.Expressions
                 new Product { UnitsInStock = ToNullable<short>(unitsInStock) },
                 new { WithNullPropagation = withNullPropagation, WithoutNullPropagation = withoutNullPropagation });
         }
+
+
+        [Fact]
+        public void NullHandling_StringFunctionWithStringParameret()
+        {
+            VerifyQueryDeserialization(
+                "startswith(ProductName, 'Abc')",
+                NotTesting,
+                "$it => (IIF((($it.ProductName == null) OrElse (\"Abc\" == null)), null, Convert($it.ProductName.StartsWith(\"Abc\"))) == True)");
+        }
+
         #endregion
 
         [Theory]
