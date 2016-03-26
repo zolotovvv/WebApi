@@ -71,6 +71,27 @@ namespace System.Web.OData
             ValidateCustomer(result["value"][0]);
         }
 
+        [Theory]
+        [InlineData("*")]
+        [InlineData("*,Orders")]
+        [InlineData("*,PreviousCustomer($levels=1)")]
+        public void SelectExpand_Works_WithExpandStar(string expand)
+        {
+            // Arrange
+            string uri = "/odata/SelectExpandTestCustomers?$expand=" + expand;
+
+            // Act
+            HttpResponseMessage response = GetResponse(uri, AcceptJsonFullMetadata);
+
+            // Assert
+            Assert.NotNull(response);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            JObject result = JObject.Parse(response.Content.ReadAsStringAsync().Result);
+            Assert.NotNull(result["value"][0]["ID"]);
+            Assert.NotNull(result["value"][0]["Orders"]);
+            Assert.NotNull(result["value"][0]["PreviousCustomer"]);
+        }
+
         [Fact]
         public void SelectExpand_Works_WithNestedFilter()
         {
@@ -280,8 +301,8 @@ namespace System.Web.OData
                 Assert.Equal("http://localhost/odata2/Players(" + i + ")/Default.PlayerAction1", result["value"][i]["#Default.PlayerAction1"]["target"]);
                 Assert.Equal("http://localhost/odata2/Players(" + i + ")/Default.PlayerAction2", result["value"][i]["#Default.PlayerAction2"]["target"]);
                 Assert.Equal("http://localhost/odata2/Players(" + i + ")/Default.PlayerAction3", result["value"][i]["#Default.PlayerAction3"]["target"]);
-                Assert.Equal("http://localhost/odata2/Players(" + i + ")/Default.PlayerFunction1", result["value"][i]["#Default.PlayerFunction1"]["target"]);
-                Assert.Equal("http://localhost/odata2/Players(" + i + ")/Default.PlayerFunction2", result["value"][i]["#Default.PlayerFunction2"]["target"]);
+                Assert.Equal("http://localhost/odata2/Players(" + i + ")/Default.PlayerFunction1()", result["value"][i]["#Default.PlayerFunction1"]["target"]);
+                Assert.Equal("http://localhost/odata2/Players(" + i + ")/Default.PlayerFunction2()", result["value"][i]["#Default.PlayerFunction2"]["target"]);
             }
         }
 

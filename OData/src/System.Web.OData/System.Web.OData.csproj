@@ -18,16 +18,16 @@
     <AssemblyOriginatorKeyFile>System.Web.OData.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.OData.Core, Version=6.14.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Microsoft.OData.Core.6.14.0\lib\portable-net40+sl5+wp8+win8+wpa\Microsoft.OData.Core.dll</HintPath>
+    <Reference Include="Microsoft.OData.Core, Version=6.15.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Microsoft.OData.Core.6.15.0\lib\portable-net45+win+wpa81\Microsoft.OData.Core.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Microsoft.OData.Edm, Version=6.14.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Microsoft.OData.Edm.6.14.0\lib\portable-net40+sl5+wp8+win8+wpa\Microsoft.OData.Edm.dll</HintPath>
+    <Reference Include="Microsoft.OData.Edm, Version=6.15.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Microsoft.OData.Edm.6.15.0\lib\portable-net45+win+wpa81\Microsoft.OData.Edm.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Microsoft.Spatial, Version=6.14.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Microsoft.Spatial.6.14.0\lib\portable-net40+sl5+wp8+win8+wpa\Microsoft.Spatial.dll</HintPath>
+    <Reference Include="Microsoft.Spatial, Version=6.15.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Microsoft.Spatial.6.15.0\lib\portable-net45+win+wpa81\Microsoft.Spatial.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
@@ -81,10 +81,12 @@
     <Compile Include="Extensions\HttpErrorExtensions.cs" />
     <Compile Include="Extensions\HttpRequestMessageExtensions.cs" />
     <Compile Include="Extensions\HttpRequestMessageProperties.cs" />
+    <Compile Include="OData\Builder\ProcedureLinkBuilder.cs" />
     <Compile Include="OData\Builder\AutoExpandAttribute.cs" />
     <Compile Include="OData\Builder\Conventions\Attributes\AutoExpandAttributeEdmTypeConvention.cs" />
     <Compile Include="OData\Builder\Conventions\Attributes\AutoExpandAttributeEdmPropertyConvention.cs" />
     <Compile Include="OData\Builder\Conventions\Attributes\ColumnAttributeEdmPropertyConvention.cs" />
+    <Compile Include="OData\Builder\Conventions\Attributes\DataContractAttributeEnumTypeConvention.cs" />
     <Compile Include="OData\Builder\Conventions\Attributes\MediaTypeAttributeConvention.cs" />
     <Compile Include="OData\Builder\PrimitivePropertyConfigurationExtensions.cs" />
     <Compile Include="OData\Builder\MediaTypeAttribute.cs" />
@@ -148,7 +150,14 @@
     <Compile Include="OData\Builder\DynamicPropertyDictionaryAnnotation.cs" />
     <Compile Include="OData\ETagMessageHandler.cs" />
     <Compile Include="OData\Formatter\ODataCountMediaTypeMapping.cs" />
+    <Compile Include="OData\Query\Expressions\AggregationBinder.cs" />
+    <Compile Include="OData\Query\ApplyQueryOption.cs" />
+    <Compile Include="OData\Query\Expressions\DynamicTypeWrapper.cs" />
+    <Compile Include="OData\Query\Expressions\ExpressionBinderBase.cs" />
+    <Compile Include="OData\ODataUriFunctions.cs" />
+    <Compile Include="OData\Query\Expressions\UriFunctionsBinder.cs" />
     <Compile Include="OData\Query\Expressions\IdentityPropertyMapper.cs" />
+    <Compile Include="OData\Query\Expressions\AggregationDynamicTypeProvider.cs" />
     <Compile Include="OData\Query\IPropertyMapper.cs" />
     <Compile Include="OData\Query\ICountOptionCollection.cs" />
     <Compile Include="OData\Query\NotCountableAttribute.cs" />

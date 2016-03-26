@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation.  All rights reserved.
 // Licensed under the MIT License.  See License.txt in the project root for license information.
 
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Contracts;
@@ -12,16 +13,19 @@ using System.Web.Http;
 using System.Web.OData.Builder;
 using System.Web.OData.Extensions;
 using System.Web.OData.Properties;
+using System.Web.OData.Query.Expressions;
 using System.Web.OData.Routing;
 using Microsoft.OData.Core;
 using Microsoft.OData.Core.UriParser.Semantic;
 using Microsoft.OData.Edm;
+using Microsoft.OData.Edm.Library;
 
 namespace System.Web.OData.Formatter.Serialization
 {
     /// <summary>
     /// ODataSerializer for serializing instances of <see cref="IEdmEntityType"/>
     /// </summary>
+    [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "Relies on many ODataLib classes.")]
     public class ODataEntityTypeSerializer : ODataEdmTypeSerializer
     {
         private const string Entry = "entry";
@@ -82,7 +86,7 @@ namespace System.Web.OData.Formatter.Serialization
             }
             else
             {
-                WriteEntry(graph, writer, writeContext);
+                WriteEntry(graph, writer, writeContext, expectedType);
             }
         }
 
@@ -137,12 +141,103 @@ namespace System.Web.OData.Formatter.Serialization
             }
         }
 
-        private void WriteEntry(object graph, ODataWriter writer, ODataSerializerContext writeContext)
+        private IEnumerable<ODataProperty> CreateODataPropertiesFromDynamicType(EdmEntityType entityType, object graph, Dictionary<IEdmTypeReference, object> navigationProperties = null)
+        {
+            var properties = new List<ODataProperty>();
+            var dynamicObject = graph as DynamicTypeWrapper;
+            foreach (var prop in graph.GetType().GetProperties())
+            {
+                object value;
+                ODataProperty property = null;
+                if (dynamicObject.TryGetPropertyValue(prop.Name, out value))
+                {
+                    bool isNavigationProperty = false;
+                    if (navigationProperties != null)
+                    {
+                        if (entityType != null)
+                        {
+                            var navigationProperty =
+                                entityType.NavigationProperties().FirstOrDefault(p => p.Name.Equals(prop.Name));
+                            if (navigationProperty != null)
+                            {
+                                navigationProperties.Add(navigationProperty.Type, value);
+                                isNavigationProperty = true;
+                            }
+                        }
+                    }
+
+                    if (!isNavigationProperty)
+                    {
+                        if (value != null && EdmLibHelpers.IsDynamicTypeWrapper(value.GetType()))
+                        {
+                            property = new ODataProperty
+                            {
+                                Name = prop.Name,
+                                Value = new ODataComplexValue
+                                {
+                                    Properties = CreateODataPropertiesFromDynamicType(entityType, value)
+                                }
+                            };
+                        }
+                        else
+                        {
+                            property = new ODataProperty
+                            {
+                                Name = prop.Name,
+                                Value = value
+                            };
+                        }
+
+                        properties.Add(property);
+                    }
+                }
+            }
+            return properties;
+        }
+
+        private void WriteDynamicTypeEntry(object graph, ODataWriter writer, IEdmTypeReference expectedType,
+            ODataSerializerContext writeContext)
+        {
+            var navigationProperties = new Dictionary<IEdmTypeReference, object>();
+            var entityType = expectedType.Definition as EdmEntityType;
+            var entry = new ODataEntry()
+            {
+                TypeName = expectedType.FullName(),
+                Properties = CreateODataPropertiesFromDynamicType(entityType, graph, navigationProperties)
+            };
+
+            entry.IsTransient = true;
+            writer.WriteStart(entry);
+            foreach (IEdmTypeReference type in navigationProperties.Keys)
+            {
+                var entityContext = new EntityInstanceContext(writeContext, expectedType.AsEntity(), graph);
+                var navigationProperty = entityType.NavigationProperties().FirstOrDefault(p => p.Type.Equals(type));
+                var navigationLink = CreateNavigationLink(navigationProperty, entityContext);
+                if (navigationLink != null)
+                {
+                    writer.WriteStart(navigationLink);
+                    WriteDynamicTypeEntry(navigationProperties[type], writer, type, writeContext);
+                    writer.WriteEnd();
+                }
+            }
+
+            writer.WriteEnd();
+        }
+
+        private void WriteEntry(object graph, ODataWriter writer, ODataSerializerContext writeContext,
+            IEdmTypeReference expectedType)
         {
             Contract.Assert(writeContext != null);
 
+            if (EdmLibHelpers.IsDynamicTypeWrapper(graph.GetType()))
+            {
+                WriteDynamicTypeEntry(graph, writer, expectedType, writeContext);
+                return;
+            }
+
             IEdmEntityTypeReference entityType = GetEntityType(graph, writeContext);
             EntityInstanceContext entityInstanceContext = new EntityInstanceContext(writeContext, entityType, graph);
+
             SelectExpandNode selectExpandNode = CreateSelectExpandNode(entityInstanceContext);
             if (selectExpandNode != null)
             {
@@ -151,7 +246,8 @@ namespace System.Web.OData.Formatter.Serialization
                 {
                     writer.WriteStart(entry);
                     WriteNavigationLinks(selectExpandNode.SelectedNavigationProperties, entityInstanceContext, writer);
-                    WriteExpandedNavigationProperties(selectExpandNode.ExpandedNavigationProperties, entityInstanceContext, writer);
+                    WriteExpandedNavigationProperties(selectExpandNode.ExpandedNavigationProperties,
+                        entityInstanceContext, writer);
                     writer.WriteEnd();
                 }
             }
@@ -232,6 +328,12 @@ namespace System.Web.OData.Formatter.Serialization
             foreach (ODataAction action in actions)
             {
                 entry.AddAction(action);
+            }
+
+            IEnumerable<ODataFunction> functions = CreateODataFunctions(selectExpandNode.SelectedFunctions, entityInstanceContext);
+            foreach (ODataFunction function in functions)
+            {
+                entry.AddFunction(function);
             }
 
             IEdmEntityType pathType = GetODataPathType(entityInstanceContext.SerializerContext);
@@ -535,6 +637,22 @@ namespace System.Web.OData.Formatter.Serialization
             }
         }
 
+        private IEnumerable<ODataFunction> CreateODataFunctions(
+            IEnumerable<IEdmFunction> functions, EntityInstanceContext entityInstanceContext)
+        {
+            Contract.Assert(functions != null);
+            Contract.Assert(entityInstanceContext != null);
+
+            foreach (IEdmFunction function in functions)
+            {
+                ODataFunction oDataFunction = CreateODataFunction(function, entityInstanceContext);
+                if (oDataFunction != null)
+                {
+                    yield return oDataFunction;
+                }
+            }
+        }
+
         /// <summary>
         /// Creates an <see cref="ODataAction" /> to be written for the given action and the entity instance.
         /// </summary>
@@ -554,9 +672,7 @@ namespace System.Web.OData.Formatter.Serialization
                 throw Error.ArgumentNull("entityInstanceContext");
             }
 
-            ODataMetadataLevel metadataLevel = entityInstanceContext.SerializerContext.MetadataLevel;
             IEdmModel model = entityInstanceContext.EdmModel;
-
             ActionLinkBuilder builder = model.GetActionLinkBuilder(action);
 
             if (builder == null)
@@ -564,62 +680,109 @@ namespace System.Web.OData.Formatter.Serialization
                 return null;
             }
 
-            if (ShouldOmitAction(action, builder, metadataLevel))
+            return CreateODataOperation(action, builder, entityInstanceContext) as ODataAction;
+        }
+
+        /// <summary>
+        /// Creates an <see cref="ODataFunction" /> to be written for the given action and the entity instance.
+        /// </summary>
+        /// <param name="function">The OData function.</param>
+        /// <param name="entityInstanceContext">The context for the entity instance being written.</param>
+        /// <returns>The created function or null if the action should not be written.</returns>
+        [SuppressMessage("Microsoft.Usage", "CA2234: Pass System.Uri objects instead of strings",
+            Justification = "This overload is equally good")]
+        [SuppressMessage("Microsoft.Naming", "CA1716: Use function as parameter name", Justification = "Function")]
+        public virtual ODataFunction CreateODataFunction(IEdmFunction function, EntityInstanceContext entityInstanceContext)
+        {
+            if (function == null)
+            {
+                throw Error.ArgumentNull("function");
+            }
+
+            if (entityInstanceContext == null)
+            {
+                throw Error.ArgumentNull("entityInstanceContext");
+            }
+
+            IEdmModel model = entityInstanceContext.EdmModel;
+            FunctionLinkBuilder builder = model.GetFunctionLinkBuilder(function);
+
+            if (builder == null)
             {
                 return null;
             }
 
-            Uri target = builder.BuildActionLink(entityInstanceContext);
+            return CreateODataOperation(function, builder, entityInstanceContext) as ODataFunction;
+        }
 
+        private static ODataOperation CreateODataOperation(IEdmOperation operation, ProcedureLinkBuilder builder, EntityInstanceContext entityInstanceContext)
+        {
+            Contract.Assert(operation != null);
+            Contract.Assert(builder != null);
+            Contract.Assert(entityInstanceContext != null);
+
+            ODataMetadataLevel metadataLevel = entityInstanceContext.SerializerContext.MetadataLevel;
+            IEdmModel model = entityInstanceContext.EdmModel;
+
+            if (ShouldOmitOperation(operation, builder, metadataLevel))
+            {
+                return null;
+            }
+
+            Uri target = builder.BuildLink(entityInstanceContext);
             if (target == null)
             {
                 return null;
             }
 
             Uri baseUri = new Uri(entityInstanceContext.Url.CreateODataLink(new MetadataPathSegment()));
-            Uri metadata = new Uri(baseUri, "#" + CreateMetadataFragment(action));
+            Uri metadata = new Uri(baseUri, "#" + CreateMetadataFragment(operation));
 
-            ODataAction odataAction = new ODataAction
+            ODataOperation odataOperation;
+            if (operation is IEdmAction)
             {
-                Metadata = metadata,
-            };
-
-            bool alwaysIncludeDetails = metadataLevel == ODataMetadataLevel.FullMetadata;
+                odataOperation = new ODataAction();
+            }
+            else
+            {
+                odataOperation = new ODataFunction();
+            }
+            odataOperation.Metadata = metadata;
 
             // Always omit the title in minimal/no metadata modes.
-            if (alwaysIncludeDetails)
+            if (metadataLevel == ODataMetadataLevel.FullMetadata)
             {
-                EmitTitle(model, action, odataAction);
+                EmitTitle(model, operation, odataOperation);
             }
 
             // Omit the target in minimal/no metadata modes unless it doesn't follow conventions.
-            if (alwaysIncludeDetails || !builder.FollowsConventions)
+            if (!builder.FollowsConventions || metadataLevel == ODataMetadataLevel.FullMetadata)
             {
-                odataAction.Target = target;
+                odataOperation.Target = target;
             }
 
-            return odataAction;
+            return odataOperation;
         }
 
-        internal static void EmitTitle(IEdmModel model, IEdmOperation operation, ODataOperation odataAction)
+        internal static void EmitTitle(IEdmModel model, IEdmOperation operation, ODataOperation odataOperation)
         {
             // The title should only be emitted in full metadata.
             OperationTitleAnnotation titleAnnotation = model.GetOperationTitleAnnotation(operation);
             if (titleAnnotation != null)
             {
-                odataAction.Title = titleAnnotation.Title;
+                odataOperation.Title = titleAnnotation.Title;
             }
             else
             {
-                odataAction.Title = operation.Name;
+                odataOperation.Title = operation.Name;
             }
         }
 
-        internal static string CreateMetadataFragment(IEdmAction action)
+        internal static string CreateMetadataFragment(IEdmOperation operation)
         {
             // There can only be one entity container in OData V4.
-            string actionName = action.Name;
-            string fragment = action.Namespace + "." + actionName;
+            string actionName = operation.Name;
+            string fragment = operation.Namespace + "." + actionName;
 
             return fragment;
         }
@@ -674,7 +837,7 @@ namespace System.Web.OData.Formatter.Serialization
             });
         }
 
-        internal static bool ShouldOmitAction(IEdmAction action, ActionLinkBuilder builder,
+        internal static bool ShouldOmitOperation(IEdmOperation operation, ProcedureLinkBuilder builder,
             ODataMetadataLevel metadataLevel)
         {
             Contract.Assert(builder != null);
@@ -683,7 +846,7 @@ namespace System.Web.OData.Formatter.Serialization
             {
                 case ODataMetadataLevel.MinimalMetadata:
                 case ODataMetadataLevel.NoMetadata:
-                    return action.IsBound && builder.FollowsConventions;
+                    return operation.IsBound && builder.FollowsConventions;
 
                 case ODataMetadataLevel.FullMetadata:
                 default: // All values already specified; just keeping the compiler happy.

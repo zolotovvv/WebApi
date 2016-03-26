@@ -97,11 +97,38 @@ namespace System.Web.OData.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The action &apos;{0}&apos; is not bound to the collection of entity. Only actions that are bound to entities can have action links..
+        /// </summary>
+        internal static string ActionNotBoundToCollectionOfEntity {
+            get {
+                return ResourceManager.GetString("ActionNotBoundToCollectionOfEntity", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The action &apos;{0}&apos; is not bound to an entity. Only actions that are bound to entities can have action links..
         /// </summary>
         internal static string ActionNotBoundToEntity {
             get {
                 return ResourceManager.GetString("ActionNotBoundToEntity", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Aggregation method &apos;{0}&apos; is not supported..
+        /// </summary>
+        internal static string AggregationMethodNotSupported {
+            get {
+                return ResourceManager.GetString("AggregationMethodNotSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Aggregation &apos;{0}&apos; not supported for property &apos;{1}&apos; of type &apos;{2}&apos;..
+        /// </summary>
+        internal static string AggregationNotSupportedForType {
+            get {
+                return ResourceManager.GetString("AggregationNotSupportedForType", resourceCulture);
             }
         }
         
@@ -682,7 +709,16 @@ namespace System.Web.OData.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The function &apos;{0}&apos; is not bound to an entity. Only actions that are bound to entities can have function links..
+        ///   Looks up a localized string similar to The function &apos;{0}&apos; is not bound to the collection of entity. Only functions that are bound to entities can have function links..
+        /// </summary>
+        internal static string FunctionNotBoundToCollectionOfEntity {
+            get {
+                return ResourceManager.GetString("FunctionNotBoundToCollectionOfEntity", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The function &apos;{0}&apos; is not bound to an entity. Only functions that are bound to entities can have function links..
         /// </summary>
         internal static string FunctionNotBoundToEntity {
             get {
@@ -727,11 +763,38 @@ namespace System.Web.OData.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to To register an action link factory, actions must be bindable to the collection of entity. Action &apos;{0}&apos; does not meet this requirement..
+        /// </summary>
+        internal static string HasActionLinkRequiresBindToCollectionOfEntity {
+            get {
+                return ResourceManager.GetString("HasActionLinkRequiresBindToCollectionOfEntity", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to To register an action link factory, actions must be bindable to a single entity. Action &apos;{0}&apos; does not meet this requirement..
         /// </summary>
         internal static string HasActionLinkRequiresBindToEntity {
             get {
                 return ResourceManager.GetString("HasActionLinkRequiresBindToEntity", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to To register a function link factory, functions must be bindable to the collection of entity. Function &apos;{0}&apos; does not meet this requirement..
+        /// </summary>
+        internal static string HasFunctionLinkRequiresBindToCollectionOfEntity {
+            get {
+                return ResourceManager.GetString("HasFunctionLinkRequiresBindToCollectionOfEntity", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to To register a function link factory, functions must be bindable to a single entity. Function &apos;{0}&apos; does not meet this requirement..
+        /// </summary>
+        internal static string HasFunctionLinkRequiresBindToEntity {
+            get {
+                return ResourceManager.GetString("HasFunctionLinkRequiresBindToEntity", resourceCulture);
             }
         }
         
@@ -1353,6 +1416,15 @@ namespace System.Web.OData.Properties {
         internal static string NotSortablePropertyUsedInOrderBy {
             get {
                 return ResourceManager.GetString("NotSortablePropertyUsedInOrderBy", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Transformation kind {0} is not supported..
+        /// </summary>
+        internal static string NotSupportedTransformationKind {
+            get {
+                return ResourceManager.GetString("NotSupportedTransformationKind", resourceCulture);
             }
         }
         
@@ -2037,6 +2109,15 @@ namespace System.Web.OData.Properties {
         internal static string UnterminatedStringLiteral {
             get {
                 return ResourceManager.GetString("UnterminatedStringLiteral", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The function &apos;{0}&apos; is already bound to another method..
+        /// </summary>
+        internal static string UriFunctionClrBinderAlreadyBound {
+            get {
+                return ResourceManager.GetString("UriFunctionClrBinderAlreadyBound", resourceCulture);
             }
         }
         

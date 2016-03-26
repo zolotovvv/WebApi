@@ -138,7 +138,7 @@ namespace System.Web.OData.Formatter
                         {
                             elementClrType = entityType;
                         }
-
+                      
                         IEdmType elementType = GetEdmType(edmModel, elementClrType, testCollections: false);
                         if (elementType != null)
                         {
@@ -148,7 +148,6 @@ namespace System.Web.OData.Formatter
                 }
 
                 Type underlyingType = TypeHelper.GetUnderlyingTypeOrSelf(clrType);
-
                 if (underlyingType.IsEnum)
                 {
                     clrType = underlyingType;
@@ -316,7 +315,67 @@ namespace System.Web.OData.Formatter
             return annotation == null ? false : annotation.Restrictions.AutoExpand;
         }
 
-        private static QueryableRestrictionsAnnotation GetPropertyRestrictions(IEdmProperty edmProperty, IEdmModel edmModel)
+        public static IEnumerable<IEdmEntityType> GetAllDerivedEntityTypes(
+            IEdmEntityType entityType, IEdmModel edmModel)
+        {
+            List<IEdmEntityType> derivedEntityTypes = new List<IEdmEntityType>();
+            if (entityType != null)
+            {
+                List<IEdmStructuredType> typeList = new List<IEdmStructuredType>();
+                typeList.Add(entityType);
+                while (typeList.Count > 0)
+                {
+                    var head = typeList[0];
+                    derivedEntityTypes.Add(head as IEdmEntityType);
+                    var derivedTypes = edmModel.FindDirectlyDerivedTypes(head);
+                    if (derivedTypes != null)
+                    {
+                        typeList.AddRange(derivedTypes);
+                    }
+
+                    typeList.RemoveAt(0);
+                }
+            }
+
+            derivedEntityTypes.RemoveAt(0);
+            return derivedEntityTypes;
+        }
+
+        public static IEnumerable<IEdmNavigationProperty> GetAutoExpandNavigationProperties(
+            IEdmEntityType baseEntityType, IEdmModel edmModel, bool searchDerivedTypeWhenAutoExpand)
+        {
+            List<IEdmNavigationProperty> autoExpandNavigationProperties = new List<IEdmNavigationProperty>();
+            List<IEdmEntityType> entityTypes = new List<IEdmEntityType>();
+            if (baseEntityType != null)
+            {
+                entityTypes.Add(baseEntityType);
+                if (searchDerivedTypeWhenAutoExpand)
+                {
+                    entityTypes.AddRange(GetAllDerivedEntityTypes(baseEntityType, edmModel));
+                }
+
+                foreach (var entityType in entityTypes)
+                {
+                    var navigationProperties = entityType == baseEntityType
+                        ? entityType.NavigationProperties()
+                        : entityType.DeclaredNavigationProperties();
+                    if (navigationProperties != null)
+                    {
+                        foreach (var navigationProperty in navigationProperties)
+                        {
+                            if (IsAutoExpand(navigationProperty, edmModel))
+                            {
+                                autoExpandNavigationProperties.Add(navigationProperty);
+                            }
+                        }
+                    }
+                }
+            }
+            return autoExpandNavigationProperties;
+        }
+
+        private static QueryableRestrictionsAnnotation GetPropertyRestrictions(IEdmProperty edmProperty,
+            IEdmModel edmModel)
         {
             Contract.Assert(edmProperty != null);
             Contract.Assert(edmModel != null);
@@ -462,6 +521,11 @@ namespace System.Web.OData.Formatter
 
             _concurrencyProperties[entitySet] = results;
             return results;
+        }
+
+        public static bool IsDynamicTypeWrapper(Type type)
+        {
+            return (type != null && typeof(DynamicTypeWrapper).IsAssignableFrom(type));
         }
 
         private static IEdmPrimitiveType GetPrimitiveType(EdmPrimitiveTypeKind primitiveKind)

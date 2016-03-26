@@ -176,7 +176,7 @@ namespace System.Web.OData.Formatter.Serialization
 
                     if (edmType == null)
                     {
-                        throw Error.InvalidOperation(SRResources.ClrTypeNotInModel, type);
+                            throw Error.InvalidOperation(SRResources.ClrTypeNotInModel, type);
                     }
                 }
                 else if (instance != null)

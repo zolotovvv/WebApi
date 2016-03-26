@@ -103,7 +103,7 @@ namespace System.Web.OData
         /// <summary>
         /// Gets the CLR type of the element.
         /// </summary>
-        public Type ElementClrType { get; private set; }
+        public Type ElementClrType { get; internal set; }
 
         /// <summary>
         /// Gets the <see cref="ODataPath"/>.

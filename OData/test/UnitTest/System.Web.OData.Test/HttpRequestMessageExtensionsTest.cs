@@ -328,10 +328,13 @@ namespace System.Net.Http
         [InlineData("http://localhost/Customers?testkey%23%2B%3D%3F%26=testvalue%23%2B%3D%3F%26", 10, "http://localhost/Customers?testkey%23%2B%3D%3F%26=testvalue%23%2B%3D%3F%26&$skip=10")]
         public void GetNextPageLink_GetsNextPageLink(string requestUri, int pageSize, string nextPageUri)
         {
+            // Arrange
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, requestUri);
 
+            // Act
             Uri nextPageLink = request.GetNextPageLink(pageSize);
 
+            // Assert
             Assert.Equal(nextPageUri, nextPageLink.AbsoluteUri);
         }
 

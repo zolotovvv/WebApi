@@ -16,16 +16,16 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="Microsoft.OData.Core, Version=6.14.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\..\packages\Microsoft.OData.Core.6.14.0\lib\portable-net40+sl5+wp8+win8+wpa\Microsoft.OData.Core.dll</HintPath>
+    <Reference Include="Microsoft.OData.Core, Version=6.15.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\..\packages\Microsoft.OData.Core.6.15.0\lib\portable-net45+win+wpa81\Microsoft.OData.Core.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Microsoft.OData.Edm, Version=6.14.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\..\packages\Microsoft.OData.Edm.6.14.0\lib\portable-net40+sl5+wp8+win8+wpa\Microsoft.OData.Edm.dll</HintPath>
+    <Reference Include="Microsoft.OData.Edm, Version=6.15.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\..\packages\Microsoft.OData.Edm.6.15.0\lib\portable-net45+win+wpa81\Microsoft.OData.Edm.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Microsoft.Spatial, Version=6.14.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\..\packages\Microsoft.Spatial.6.14.0\lib\portable-net40+sl5+wp8+win8+wpa\Microsoft.Spatial.dll</HintPath>
+    <Reference Include="Microsoft.Spatial, Version=6.15.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\..\packages\Microsoft.Spatial.6.15.0\lib\portable-net45+win+wpa81\Microsoft.Spatial.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Moq, Version=4.0.10827.0, Culture=neutral, PublicKeyToken=69f491c39445e920, processorArchitecture=MSIL">
@@ -102,8 +102,10 @@
     <Compile Include="OData\Batch\ChangeSetResponseItemTest.cs" />
     <Compile Include="OData\Batch\ChangeSetRequestItemTest.cs" />
     <Compile Include="OData\Batch\DefaultODataBatchHandlerTest.cs" />
+    <Compile Include="OData\Builder\FunctionLinkBuilderTest.cs" />
     <Compile Include="OData\Builder\ComplexTypeConfigurationTest.cs" />
     <Compile Include="OData\Builder\ContainmentPathBuilderTest.cs" />
+    <Compile Include="OData\Builder\Conventions\FunctionLinkGenerationConventionTest.cs" />
     <Compile Include="OData\Builder\Conventions\Attributes\ActionOnDeleteAttributeConventionTest.cs" />
     <Compile Include="OData\Builder\Conventions\Attributes\ComplexTypeAttributeConventionTests.cs" />
     <Compile Include="OData\Builder\Conventions\Attributes\ConcurrencyCheckAttributeEdmPropertyConventionTest.cs" />
@@ -190,6 +192,7 @@
     <Compile Include="OData\ODataSwaggerConverterTest.cs" />
     <Compile Include="OData\ODataSwaggerUtilitiesTest.cs" />
     <Compile Include="OData\ODataUriResolverExtensionTest.cs" />
+    <Compile Include="OData\FunctionActionAdvertisedTest.cs" />
     <Compile Include="OData\OpenEntityTypeTest.cs" />
     <Compile Include="OData\PerRequestContentNegotiatorTest.cs" />
     <Compile Include="OData\ODataRoutingAttributeTest.cs" />
@@ -199,6 +202,10 @@
     <Compile Include="OData\ODataSingletonTest.cs" />
     <Compile Include="OData\OpenComplexTypeTest.cs" />
     <Compile Include="OData\QueryableLimitationTest.cs" />
+    <Compile Include="OData\Query\ApplyQueryOptionTest.cs" />
+    <Compile Include="OData\Query\Expressions\AggregationBinderTests.cs" />
+    <Compile Include="OData\Query\Expressions\DynamicTypeWrapperTests.cs" />
+    <Compile Include="OData\Query\Expressions\UriFunctionBinderTests.cs" />
     <Compile Include="OData\Query\ODataSingletonQueryOptionTest.cs" />
     <Compile Include="OData\Query\ODataQueryOptionParserExtensionTest.cs" />
     <Compile Include="OData\Query\ParameterAliasNodeTranslatorTest.cs" />
